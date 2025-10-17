@@ -21,6 +21,8 @@
         ::-webkit-scrollbar-track { background: #161b22; }
         ::-webkit-scrollbar-thumb { background: #484f58; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #5c6370; }
+        /* Modal class for guaranteed visibility */
+        .modal-visible { display: flex !important; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -35,7 +37,6 @@
         </div>
 
         <!-- Chart and Advanced KPIs -->
-        <!-- *** ADDED ID="main-content-grid" HERE FOR RELIABLE JS ACCESS *** -->
         <div id="main-content-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <!-- Equity Curve Chart -->
             <div class="card p-5 rounded-lg lg:col-span-2">
@@ -384,13 +385,12 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     </div>
                 `;
                 
-                // *** FIX: Insert the new card using the reliable ID "main-content-grid" ***
+                // *** Insert the new card using the reliable ID "main-content-grid" ***
                 if (mainContentGrid) {
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = equityCardHTML.trim();
                     const newCard = tempDiv.firstChild;
-                    // The main content grid has 3 children: Chart, KPI, and the hidden Equity card element itself. 
-                    // We insert the new card *before* the KPI container (index 1) to position it correctly.
+                    // Insert before the KPI container (index 1) to position it correctly.
                     mainContentGrid.insertBefore(newCard, mainContentGrid.children[1]); 
                 }
             } else {
@@ -807,6 +807,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     // Close modal after a brief moment
                     setTimeout(() => {
                         importModal.classList.add('hidden');
+                        importModal.classList.remove('modal-visible'); // Ensure absolute hidden state
                         // Reset status message after closing
                         importStatus.classList.remove('green-text');
                         importStatus.textContent = '';
@@ -850,12 +851,14 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 tradeFeeInput.value = '0.00';
                 tradeNotesInput.value = '';
                 tradeModal.classList.remove('hidden');
+                tradeModal.classList.add('modal-visible'); // Force display
             });
             
             importDataBtn.addEventListener('click', () => {
                 importStatus.textContent = ''; // Clear any previous status
                 importDataTextarea.value = ''; // Ensure textarea is empty
                 importModal.classList.remove('hidden');
+                importModal.classList.add('modal-visible'); // Force display
             });
             
             // Listener for the newly rendered Update Equity button
@@ -863,6 +866,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 if (e.target && e.target.id === 'update-equity-btn') {
                     currentEquityInput.value = currentEquity.toFixed(2);
                     equityModal.classList.remove('hidden');
+                    equityModal.classList.add('modal-visible'); // Force display
                 }
             });
 
@@ -870,8 +874,11 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             [cancelTradeBtn, cancelImportBtn, cancelEquityBtn].forEach(btn => {
                 btn.addEventListener('click', () => {
                     tradeModal.classList.add('hidden');
+                    tradeModal.classList.remove('modal-visible');
                     importModal.classList.add('hidden');
+                    importModal.classList.remove('modal-visible');
                     equityModal.classList.add('hidden');
+                    equityModal.classList.remove('modal-visible');
                     
                     if (confirmationTimeout) {
                         clearTimeout(confirmationTimeout);
@@ -901,6 +908,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 }
 
                 tradeModal.classList.add('hidden');
+                tradeModal.classList.remove('modal-visible');
             });
 
             importForm.addEventListener('submit', parseAndSaveBulkTrades);
@@ -911,6 +919,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 if (!isNaN(balance)) {
                     await updateEquity(balance);
                     equityModal.classList.add('hidden');
+                    equityModal.classList.remove('modal-visible');
                 }
             });
 
@@ -935,6 +944,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                         tradeNotesInput.value = trade.notes || '';
 
                         tradeModal.classList.remove('hidden');
+                        tradeModal.classList.add('modal-visible');
                     }
                 } else if (e.target.classList.contains('delete-btn')) {
                     // Double-click confirmation logic
