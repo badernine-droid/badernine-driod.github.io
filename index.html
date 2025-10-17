@@ -35,6 +35,18 @@
             <p class="font-semibold text-yellow-300">⚠️ Interactive Brokers Data Strategy:</p>
             <p class="text-yellow-400">Direct API connection requires a secure backend server. This app supports **Bulk Import** by allowing you to paste trade history from an IBKR Flex Report (or any CSV/text file) for instant analysis.</p>
         </div>
+        
+        <!-- Account Selector -->
+        <div class="mb-6 flex items-center gap-4">
+            <label for="account-selector" class="text-sm font-medium">Select Portfolio/Account:</label>
+            <select id="account-selector" class="p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-white focus:ring-blue-500 focus:border-blue-500 w-48">
+                <!-- Options populated by JS -->
+            </select>
+            <button id="add-account-btn" class="bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold py-2 px-3 rounded-lg transition duration-200">
+                + New Account
+            </button>
+        </div>
+
 
         <!-- Chart and Advanced KPIs -->
         <div id="main-content-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -47,7 +59,7 @@
             </div>
 
             <!-- Key Performance Indicators (KPIs) -->
-            <div class="card p-5 rounded-lg lg:col-span-1">
+            <div id="kpi-parent-card" class="card p-5 rounded-lg lg:col-span-1">
                 <h2 class="text-xl font-semibold mb-4 text-white">Core Metrics</h2>
                 <div id="kpi-container" class="grid grid-cols-2 gap-4">
                     <!-- KPIs will be rendered here by JavaScript -->
@@ -85,9 +97,10 @@
                     <thead class="bg-[#21262d]">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Account</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Symbol</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Net P&L ($)</th> <!-- Renamed P&L column -->
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Fee ($)</th> <!-- NEW FEE COLUMN -->
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Net P&L ($)</th> 
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Fee ($)</th> 
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Size</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Notes</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Action</th>
@@ -115,20 +128,24 @@
                         <input type="date" id="trade-date" required class="w-full p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-white">
                     </div>
                     <div>
-                        <label for="trade-symbol" class="block text-sm font-medium mb-1">Symbol (e.g., AAPL)</label>
-                        <input type="text" id="trade-symbol" required class="w-full p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-white uppercase" maxlength="10">
+                        <label for="trade-account-id" class="block text-sm font-medium mb-1">Account ID</label>
+                        <input type="text" id="trade-account-id" required class="w-full p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-white" maxlength="20">
                     </div>
                     <!-- Row 2 -->
                     <div>
-                        <label for="trade-gross-pnl" class="block text-sm font-medium mb-1">Gross P&L ($)</label>
-                        <input type="number" step="0.01" id="trade-gross-pnl" required class="w-full p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-white">
+                        <label for="trade-symbol" class="block text-sm font-medium mb-1">Symbol (e.g., AAPL)</label>
+                        <input type="text" id="trade-symbol" required class="w-full p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-white uppercase" maxlength="10">
                     </div>
                     <div>
                         <label for="trade-size" class="block text-sm font-medium mb-1">Position Size (Shares/Contracts)</label>
                         <input type="number" step="1" id="trade-size" required class="w-full p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-white">
                     </div>
-                    <!-- Row 3 (Commission Fee) -->
-                    <div class="md:col-span-2">
+                    <!-- Row 3 -->
+                    <div>
+                        <label for="trade-gross-pnl" class="block text-sm font-medium mb-1">Gross P&L ($)</label>
+                        <input type="number" step="0.01" id="trade-gross-pnl" required class="w-full p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-white">
+                    </div>
+                    <div>
                         <label for="trade-fee" class="block text-sm font-medium mb-1">Commission Fee ($)</label>
                         <input type="number" step="0.01" id="trade-fee" value="0.00" class="w-full p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-white">
                     </div>
@@ -154,12 +171,12 @@
     <div id="import-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
         <div class="card w-full max-w-lg p-6 rounded-xl">
             <h3 class="text-xl font-bold mb-4 text-white">Import Trades from Flex Report (CSV)</h3>
-            <p class="text-sm text-gray-400 mb-4">Paste your trade data below. Each line should follow the format: <code class="bg-[#30363d] p-1 rounded">YYYY-MM-DD,SYMBOL,Gross PnL,Size,Fee</code></p>
+            <p class="text-sm text-gray-400 mb-4">Paste your trade data below. Each line should follow the format: <code class="bg-[#30363d] p-1 rounded">YYYY-MM-DD,ACCOUNT_ID,SYMBOL,Gross PnL,Size,Fee</code></p>
             <form id="import-form" class="space-y-4">
                 <textarea id="import-data-textarea" rows="10" placeholder="Example: 
-2025-10-16,NVDA,150.25,10,1.00
-2025-10-16,AMD,-40.50,20,0.80
-2025-10-15,TSLA,800.00,5,2.00" 
+2025-10-16,Account1,NVDA,150.25,10,1.00
+2025-10-16,Account2,AMD,-40.50,20,0.80
+2025-10-15,Account1,TSLA,800.00,5,2.00" 
 class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white resize-none"></textarea>
 
                 <div id="import-status" class="text-sm font-medium text-red-400"></div>
@@ -179,7 +196,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
     <!-- Modal for Updating Equity (Hidden by default) -->
     <div id="equity-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
         <div class="card w-full max-w-sm p-6 rounded-xl">
-            <h3 class="text-xl font-bold mb-4 text-white">Update Current Equity</h3>
+            <h3 class="text-xl font-bold mb-4 text-white">Update Current Equity for <span id="equity-modal-account-name"></span></h3>
             <form id="equity-form" class="space-y-4">
                 <div>
                     <label for="current-equity" class="block text-sm font-medium mb-1">Current Account Balance ($)</label>
@@ -196,6 +213,28 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             </form>
         </div>
     </div>
+    
+    <!-- Modal for Adding New Account (Hidden by default) -->
+    <div id="new-account-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
+        <div class="card w-full max-w-sm p-6 rounded-xl">
+            <h3 class="text-xl font-bold mb-4 text-white">Add New Portfolio Account</h3>
+            <form id="new-account-form" class="space-y-4">
+                <div>
+                    <label for="new-account-name" class="block text-sm font-medium mb-1">Account Name/ID (e.g., Account 1, Retirement)</label>
+                    <input type="text" id="new-account-name" required class="w-full p-2 rounded-lg bg-[#0d1117] border border-[#30363d] text-white" maxlength="20">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancel-new-account-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                        Cancel
+                    </button>
+                    <button type="submit" id="save-new-account-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                        Add Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <!-- Firebase SDKs -->
     <script type="module">
@@ -215,49 +254,63 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
         let auth = null;
         let userId = null;
         let trades = [];
-        let equityChartInstance = null; // Store Chart.js instance
-        let currentEquity = 0; // Current account balance
+        let accounts = []; // Stores user-defined accounts
+        let currentAccountId = 'Account 1'; // Default starting account ID
+        let equityChartInstance = null; 
+        let currentEquity = 0; 
 
         // DOM Elements
         const tradeLogBody = document.getElementById('trade-log-body');
         const kpiContainer = document.getElementById('kpi-container');
         const symbolFilter = document.getElementById('symbol-filter');
+        const accountSelector = document.getElementById('account-selector');
+        const addAccountBtn = document.getElementById('add-account-btn');
         const addTradeBtn = document.getElementById('add-trade-btn');
         const importDataBtn = document.getElementById('import-data-btn');
         const tradeModal = document.getElementById('trade-modal');
         const importModal = document.getElementById('import-modal');
+        const equityModal = document.getElementById('equity-modal');
+        const newAccountModal = document.getElementById('new-account-modal');
         const tradeForm = document.getElementById('trade-form');
         const importForm = document.getElementById('import-form');
+        const equityForm = document.getElementById('equity-form');
+        const newAccountForm = document.getElementById('new-account-form');
         const cancelTradeBtn = document.getElementById('cancel-trade-btn');
         const cancelImportBtn = document.getElementById('cancel-import-btn');
+        const cancelEquityBtn = document.getElementById('cancel-equity-btn');
+        const cancelNewAccountBtn = document.getElementById('cancel-new-account-btn');
         const importDataTextarea = document.getElementById('import-data-textarea');
         const importStatus = document.getElementById('import-status');
         const noTradesMessage = document.getElementById('no-trades-message');
-        const tradeNotesInput = document.getElementById('trade-notes'); // Notes Field
-        const mainContentGrid = document.getElementById('main-content-grid'); // Fixed reference
+        const tradeNotesInput = document.getElementById('trade-notes'); 
+        const mainContentGrid = document.getElementById('main-content-grid'); 
 
-        
-        // Equity Elements
-        const equityModal = document.getElementById('equity-modal');
-        const equityForm = document.getElementById('equity-form');
-        const currentEquityInput = document.getElementById('current-equity');
-        const cancelEquityBtn = document.getElementById('cancel-equity-btn');
-        
-        // New/Renamed Input Fields
+        // New Input Fields
+        const tradeAccountIdInput = document.getElementById('trade-account-id');
         const tradeGrossPnLInput = document.getElementById('trade-gross-pnl');
         const tradeFeeInput = document.getElementById('trade-fee'); 
+        const currentEquityInput = document.getElementById('current-equity');
+        const equityModalAccountName = document.getElementById('equity-modal-account-name');
+        
+        // NEW ELEMENT ID FOR FIX
+        const kpiParentCard = document.getElementById('kpi-parent-card');
 
         let currentTradeToEdit = null;
         let confirmationTimeout = null;
 
         // Sample data for initial load
         const sampleTrades = [
-            { date: '2025-10-12', symbol: 'NVDA', grossPnL: 150.00, size: 10, fee: 1.50, notes: 'Successful breakout trade, high conviction.' },
-            { date: '2025-10-13', symbol: 'TSLA', grossPnL: -200.00, size: 5, fee: 2.00, notes: 'Emotional revenge trade after missing the morning rally.' },
-            { date: '2025-10-14', symbol: 'AMD', grossPnL: 50.00, size: 20, fee: 0.80, notes: 'Scalp on 5-min chart, target hit perfectly.' },
-            { date: '2025-10-15', symbol: 'NVDA', grossPnL: 250.00, size: 10, fee: 1.50, notes: 'Re-entry into NVDA, trend continuation trade.' },
-            { date: '2025-10-16', symbol: 'TSLA', grossPnL: -100.00, size: 5, fee: 2.00, notes: 'Stop loss hit due to market volatility. System was followed.' },
-            { date: '2025-10-17', symbol: 'GOOGL', grossPnL: 100.00, size: 2, fee: 0.50, notes: 'Earnings gap fill strategy. Held overnight.' }
+            { accountId: 'Account 1', date: '2025-10-12', symbol: 'NVDA', grossPnL: 150.00, size: 10, fee: 1.50, notes: 'Successful breakout trade, high conviction.' },
+            { accountId: 'Account 2', date: '2025-10-13', symbol: 'TSLA', grossPnL: -200.00, size: 5, fee: 2.00, notes: 'Emotional revenge trade after missing the morning rally.' },
+            { accountId: 'Account 1', date: '2025-10-14', symbol: 'AMD', grossPnL: 50.00, size: 20, fee: 0.80, notes: 'Scalp on 5-min chart, target hit perfectly.' },
+            { accountId: 'Account 2', date: '2025-10-15', symbol: 'NVDA', grossPnL: 250.00, size: 10, fee: 1.50, notes: 'Re-entry into NVDA, trend continuation trade.' },
+            { accountId: 'Account 1', date: '2025-10-16', symbol: 'TSLA', grossPnL: -100.00, size: 5, fee: 2.00, notes: 'Stop loss hit due to market volatility. System was followed.' },
+            { accountId: 'Account 2', date: '2025-10-17', symbol: 'GOOGL', grossPnL: 100.00, size: 2, fee: 0.50, notes: 'Earnings gap fill strategy. Held overnight.' }
+        ];
+        
+        const sampleAccounts = [
+            { id: 'Account 1', name: 'Account 1' },
+            { id: 'Account 2', name: 'Account 2' }
         ];
 
         // --- UTILITY FUNCTIONS ---
@@ -285,11 +338,9 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
-                        userId = user.uid; // userId set here
+                        userId = user.uid; 
                         console.log("User authenticated. UID:", userId);
-                        startTradeListener(); // Listener starts here
-                        startEquityListener(); // Start listening for equity
-                        checkAndInsertSampleData(); // Check and insert sample data once authentication is ready
+                        startAccountListener(); 
                     } else {
                         console.log("No user signed in. Using anonymous sign-in or falling back to default.");
                     }
@@ -300,12 +351,6 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             }
         }
 
-        /**
-         * Formats a number to currency string.
-         * @param {number} amount - The number to format.
-         * @param {boolean} includeColor - Whether to include color class.
-         * @returns {string} The formatted currency string or text.
-         */
         function formatCurrency(amount, includeColor = true) {
             const num = parseFloat(amount);
             const formatted = `$${Math.abs(num).toFixed(2)}`;
@@ -318,40 +363,28 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             return formatted;
         }
         
-        /**
-         * Formats a factor or rate.
-         * @param {number} value - The number to format.
-         * @returns {string} The formatted factor or rate.
-         */
         function formatFactor(value) {
             const num = parseFloat(value);
             const colorClass = num >= 1.0 ? 'green-text' : 'red-text';
             return `<span class="${colorClass}">${num.toFixed(2)}</span>`;
         }
 
-
         /**
          * Calculates and renders Key Performance Indicators (KPIs).
-         * @param {Array<Object>} tradeData - Array of trade objects.
+         * @param {Array<Object>} tradeData - Array of trade objects filtered by current account.
          */
         function renderKPIs(tradeData) {
-            // Note: All PnL calculations use the NET P&L stored in the 'pnl' field.
             const winningTrades = tradeData.filter(trade => trade.pnl > 0);
             const losingTrades = tradeData.filter(trade => trade.pnl < 0);
             const grossProfit = winningTrades.reduce((sum, trade) => sum + trade.pnl, 0);
-            const grossLoss = losingTrades.reduce((sum, trade) => sum + trade.pnl, 0); // This will be negative
+            const grossLoss = losingTrades.reduce((sum, trade) => sum + trade.pnl, 0); 
             
             const totalPnL = grossProfit + grossLoss;
             const totalTrades = tradeData.length;
             const winRate = totalTrades > 0 ? (winningTrades.length / totalTrades) * 100 : 0;
-            // const avgPnL = totalTrades > 0 ? totalPnL / totalTrades : 0; // Removed as it wasn't requested
-
             const avgWin = winningTrades.length > 0 ? grossProfit / winningTrades.length : 0;
-            const avgLoss = losingTrades.length > 0 ? grossLoss / losingTrades.length : 0; // Negative value
-            
-            // Profit Factor: Gross Profit / Absolute Gross Loss
+            const avgLoss = losingTrades.length > 0 ? grossLoss / losingTrades.length : 0; 
             const profitFactor = Math.abs(grossLoss) > 0 ? grossProfit / Math.abs(grossLoss) : grossProfit > 0 ? Infinity : 0; 
-            
             const largestWin = tradeData.length > 0 ? Math.max(...tradeData.map(t => t.pnl)) : 0;
             const largestLoss = tradeData.length > 0 ? Math.min(...tradeData.map(t => t.pnl)) : 0;
             
@@ -373,37 +406,34 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 </div>
             `).join('');
             
-            // Render the Equity Balance card 
-            if (!document.getElementById('equity-balance-card')) {
-                 const equityCardHTML = `
-                    <div id="equity-balance-card" class="card p-5 rounded-lg lg:col-span-1 flex flex-col justify-center items-center">
-                        <p class="text-sm font-medium text-gray-400 mb-1">Current Account Equity</p>
-                        <p id="current-equity-display" class="kpi-value text-white">${formatCurrency(currentEquity, false)}</p>
-                        <button id="update-equity-btn" class="mt-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded-lg text-sm transition duration-200">
-                            Update Equity
-                        </button>
-                    </div>
-                `;
-                
-                // *** Insert the new card using the reliable ID "main-content-grid" ***
-                if (mainContentGrid) {
+            // Render/Update the Equity Balance card 
+            if (kpiParentCard && mainContentGrid) {
+                if (!document.getElementById('equity-balance-card')) {
+                     const equityCardHTML = `
+                        <div id="equity-balance-card" class="card p-5 rounded-lg lg:col-span-1 flex flex-col justify-center items-center">
+                            <p class="text-sm font-medium text-gray-400 mb-1">Current Equity (${currentAccountId})</p>
+                            <p id="current-equity-display" class="kpi-value text-white">${formatCurrency(currentEquity, false)}</p>
+                            <button id="update-equity-btn" class="mt-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded-lg text-sm transition duration-200">
+                                Update Equity
+                            </button>
+                        </div>
+                    `;
+                    
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = equityCardHTML.trim();
                     const newCard = tempDiv.firstChild;
-                    // Insert before the KPI container (index 1) to position it correctly.
-                    mainContentGrid.insertBefore(newCard, mainContentGrid.children[1]); 
+                    
+                    // *** CRITICAL FIX: Insert the new card before the KPI Parent Card, which IS a direct child of mainContentGrid. ***
+                    mainContentGrid.insertBefore(newCard, kpiParentCard); 
+
+                } else {
+                    document.getElementById('equity-balance-card').querySelector('p:first-child').textContent = `Current Equity (${currentAccountId})`;
+                    document.getElementById('current-equity-display').innerHTML = formatCurrency(currentEquity, false);
                 }
-            } else {
-                document.getElementById('current-equity-display').innerHTML = formatCurrency(currentEquity, false);
             }
         }
         
-        /**
-         * Renders the Equity Curve Chart using Chart.js
-         * @param {Array<Object>} tradeData - Array of trade objects.
-         */
         function renderEquityCurve(tradeData) {
-            // Sort trades chronologically for the curve
             const sortedTrades = [...tradeData].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
             const labels = [];
@@ -411,14 +441,13 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             let cumulativePnL = 0;
 
             sortedTrades.forEach(trade => {
-                cumulativePnL += trade.pnl; // Uses NET P&L
+                cumulativePnL += trade.pnl; 
                 labels.push(trade.date);
                 dataPoints.push(cumulativePnL);
             });
             
             const ctx = document.getElementById('equity-curve-chart').getContext('2d');
             
-            // Destroy previous chart instance if it exists
             if (equityChartInstance) {
                 equityChartInstance.destroy();
             }
@@ -428,9 +457,9 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Cumulative Net P&L ($)',
+                        label: `Cumulative Net P&L (${currentAccountId})`,
                         data: dataPoints,
-                        borderColor: '#3fb950', // Green line color
+                        borderColor: '#3fb950', 
                         backgroundColor: 'rgba(63, 185, 80, 0.2)',
                         borderWidth: 2,
                         pointRadius: 2,
@@ -441,43 +470,15 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false,
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `Net P&L: $${context.parsed.y.toFixed(2)}`;
-                                }
-                            }
-                        }
-                    },
+                    plugins: { legend: { display: false } },
                     scales: {
-                        x: {
-                            title: { display: true, text: 'Trade Date', color: '#8b949e' },
-                            ticks: { color: '#8b949e' },
-                            grid: { color: '#30363d' }
-                        },
-                        y: {
-                            title: { display: true, text: 'P&L ($)', color: '#8b949e' },
-                            ticks: { 
-                                color: '#8b949e',
-                                callback: function(value) {
-                                    return `$${value}`;
-                                }
-                            },
-                            grid: { color: '#30363d' }
-                        }
+                        x: { title: { display: true, text: 'Trade Date', color: '#8b949e' }, ticks: { color: '#8b949e' }, grid: { color: '#30363d' } },
+                        y: { title: { display: true, text: 'P&L ($)', color: '#8b949e' }, ticks: { color: '#8b949e', callback: (value) => `$${value}` }, grid: { color: '#30363d' } }
                     }
                 }
             });
         }
 
-
-        /**
-         * Renders the trade log table body based on the current trades and filter.
-         */
         function renderTradeLog(currentTrades) {
             tradeLogBody.innerHTML = '';
             const selectedSymbol = symbolFilter.value;
@@ -486,21 +487,22 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 : currentTrades.filter(trade => trade.symbol === selectedSymbol);
 
             if (filteredTrades.length === 0) {
-                tradeLogBody.innerHTML = `<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No trades match the current filter.</td></tr>`;
+                tradeLogBody.innerHTML = `<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No trades found for this account/filter.</td></tr>`;
                 noTradesMessage.classList.remove('hidden');
             } else {
                 filteredTrades.forEach(trade => {
                     const date = trade.date ? new Date(trade.date).toLocaleDateString() : 'N/A';
                     const notesPreview = trade.notes ? trade.notes.substring(0, 50) + (trade.notes.length > 50 ? '...' : '') : 'N/A';
-                    const feeDisplay = trade.fee !== undefined ? trade.fee.toFixed(2) : '0.00'; // Display fee
+                    const feeDisplay = trade.fee !== undefined ? trade.fee.toFixed(2) : '0.00'; 
                     
                     const row = document.createElement('tr');
                     row.className = 'data-row hover:bg-[#21262d] transition duration-150';
                     row.innerHTML = `
                         <td class="px-6 py-3 whitespace-nowrap">${date}</td>
+                        <td class="px-6 py-3 whitespace-nowrap">${trade.accountId}</td>
                         <td class="px-6 py-3 whitespace-nowrap font-medium text-white">${trade.symbol}</td>
-                        <td class="px-6 py-3 whitespace-nowrap">${formatCurrency(trade.pnl)}</td> <!-- Net P&L -->
-                        <td class="px-6 py-3 whitespace-nowrap text-red-300">-$${feeDisplay}</td> <!-- Fee -->
+                        <td class="px-6 py-3 whitespace-nowrap">${formatCurrency(trade.pnl)}</td> 
+                        <td class="px-6 py-3 whitespace-nowrap text-red-300">-$${feeDisplay}</td> 
                         <td class="px-6 py-3 whitespace-nowrap">${trade.size.toLocaleString()}</td>
                         <td class="px-6 py-3 whitespace-normal max-w-xs text-sm text-gray-400">${notesPreview}</td>
                         <td class="px-6 py-3 whitespace-nowrap space-x-2">
@@ -514,9 +516,6 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             }
         }
 
-        /**
-         * Updates the symbol filter dropdown with unique symbols from trades.
-         */
         function updateSymbolFilter(tradeData) {
             const uniqueSymbols = ['ALL', ...new Set(tradeData.map(trade => trade.symbol))];
             const currentFilter = symbolFilter.value;
@@ -525,86 +524,121 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 `<option value="${symbol}" ${symbol === currentFilter ? 'selected' : ''}>${symbol}</option>`
             ).join('');
         }
+        
+        function updateAccountSelector(accountList) {
+            accountSelector.innerHTML = ''; // Clear existing options
+            accountList.forEach(account => {
+                const option = document.createElement('option');
+                option.value = account.id;
+                option.textContent = account.name;
+                if (account.id === currentAccountId) {
+                    option.selected = true;
+                }
+                accountSelector.appendChild(option);
+            });
+            // Trigger the listeners to load data for the newly selected account
+            if (accountList.length > 0 && currentAccountId !== accountSelector.value) {
+                currentAccountId = accountSelector.value;
+                startTradeListener();
+                startEquityListener();
+            }
+        }
 
         // --- FIRESTORE OPERATIONS ---
 
+        const getAccountsCollectionRef = () => {
+             if (!db || !userId) { console.error("Firestore not initialized or user not logged in."); return null; }
+            return collection(db, `artifacts/${appId}/users/${userId}/accounts`);
+        };
+        
         const getTradesCollectionRef = () => {
-            if (!db || !userId) {
-                console.error("Firestore not initialized or user not logged in.");
-                return null;
-            }
-            // Private data path: /artifacts/{appId}/users/{userId}/{collectionName}
+            if (!db || !userId) { console.error("Firestore not initialized or user not logged in."); return null; }
             return collection(db, `artifacts/${appId}/users/${userId}/trades`);
         };
         
-        const getEquityDocRef = () => {
-             if (!db || !userId) {
-                console.error("Firestore not initialized or user not logged in.");
-                return null;
-            }
-            // Private data path for a single document: /artifacts/{appId}/users/{userId}/settings/equity
-            return doc(db, `artifacts/${appId}/users/${userId}/settings/equity`);
+        const getEquityDocRef = (accountId) => {
+             if (!db || !userId) { console.error("Firestore not initialized or user not logged in."); return null; }
+            return doc(db, `artifacts/${appId}/users/${userId}/equity_balances/${accountId}`);
         };
 
+        function startAccountListener() {
+            const accountsRef = getAccountsCollectionRef();
+            if (!accountsRef) return;
+
+            onSnapshot(accountsRef, (snapshot) => {
+                accounts = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    accounts.push({ id: doc.id, name: data.name || doc.id });
+                });
+
+                if (accounts.length === 0) {
+                    checkAndInsertSampleData(); // Insert samples if no accounts exist
+                } else {
+                    // Set currentAccountId to the first account if it was the default
+                    if (currentAccountId === 'Account 1' && accounts.some(a => a.id !== 'Account 1')) {
+                         currentAccountId = accounts[0].id;
+                    }
+                    updateAccountSelector(accounts);
+                    // Start trade and equity listeners only after accounts are loaded
+                    startTradeListener(); 
+                    startEquityListener();
+                }
+            }, (error) => {
+                console.error("Error listening to accounts data:", error);
+            });
+        }
+
+
         /**
-         * Starts a real-time listener for trade data.
+         * Starts a real-time listener for trade data for the current account.
          */
         function startTradeListener() {
             const tradesRef = getTradesCollectionRef();
-            if (!tradesRef) return;
+            if (!tradesRef || !currentAccountId) return;
 
-            const q = query(tradesRef);
+            // Query trades only for the currentAccountId
+            const q = query(tradesRef); 
+            
+            // Note: We intentionally avoid the 'where' clause here to prevent index creation issues.
+            // Filtering is done client-side based on currentAccountId.
 
             onSnapshot(q, (snapshot) => {
-                trades = [];
+                const allTrades = [];
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     
-                    // Handle potential old data without 'fee' or 'grossPnL' fields (legacy support)
                     const fee = parseFloat(data.fee || 0);
-                    let netPnL = parseFloat(data.pnl || 0);
-
-                    // If grossPnL exists, calculate net PnL from it. Otherwise, assume 'pnl' is already net.
                     const grossPnL = parseFloat(data.grossPnL || data.pnl || 0);
-                    
-                    if (data.grossPnL !== undefined) {
-                         // Use saved grossPnL to calculate netPnL based on the saved fee
-                         netPnL = grossPnL - fee; 
-                    } 
-                    // Ensure symbol is always uppercase for filtering
+                    const netPnL = grossPnL - fee; 
                     const symbol = (data.symbol || 'N/A').toUpperCase();
 
-                    trades.push({
+                    allTrades.push({
                         id: doc.id,
+                        accountId: data.accountId || 'Account 1', // Default account ID for older trades
                         date: data.date,
                         symbol: symbol,
-                        pnl: netPnL,          // This is the NET P&L used for all calculations
-                        grossPnL: grossPnL,   // Original value before fees (for editing form)
-                        fee: fee,             // Fee value
+                        pnl: netPnL,          
+                        grossPnL: grossPnL,   
+                        fee: fee,             
                         size: parseFloat(data.size || 0),
                         notes: data.notes || '', 
                         createdAt: data.createdAt ? data.createdAt.toDate().getTime() : 0,
                     });
                 });
+                
+                // Filter the global trade list down to the currently selected account
+                trades = allTrades.filter(t => t.accountId === currentAccountId);
 
-                // Sort trades by date (most recent first) in memory for the table
                 const tableSortedTrades = [...trades].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-                // 1. Update Filter Options
                 updateSymbolFilter(trades);
-
-                // 2. Render KPIs (use all trades)
                 renderKPIs(trades);
-                
-                // 3. Render Equity Curve (use all trades sorted chronologically)
                 renderEquityCurve(trades);
-
-                // 4. Render Trade Log (use table-sorted trades)
                 renderTradeLog(tableSortedTrades);
 
             }, (error) => {
                 console.error("Error listening to trade data:", error);
-                tradeLogBody.innerHTML = `<tr><td colspan="7" class="px-6 py-4 text-center text-red-400">Failed to load trades. Check console for error.</td></tr>`;
             });
         }
         
@@ -612,17 +646,16 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
          * Starts a real-time listener for account equity data.
          */
         function startEquityListener() {
-            const equityRef = getEquityDocRef();
+            const equityRef = getEquityDocRef(currentAccountId);
             if (!equityRef) return;
 
             onSnapshot(equityRef, (docSnap) => {
                 if (docSnap.exists()) {
                     currentEquity = parseFloat(docSnap.data().balance || 0);
                 } else {
-                    currentEquity = 0; // Default if not set
+                    currentEquity = 0; 
                 }
                 
-                // Rerender KPIs/Equity Card to reflect new balance
                 renderKPIs(trades); 
             }, (error) => {
                 console.error("Error listening to equity data:", error);
@@ -630,10 +663,34 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
         }
 
 
-        /**
-         * Adds a new trade document to Firestore.
-         * @param {Object} tradeData - The trade data object (containing grossPnL and fee).
-         */
+        // --- CRUD OPERATIONS ---
+        
+        async function addAccount(accountName) {
+            const accountsRef = getAccountsCollectionRef();
+            if (!accountsRef) return;
+            
+            const accountId = accountName.trim().replace(/\s+/g, '_').toLowerCase();
+            
+            // Check if account already exists (case-insensitive on name)
+            if (accounts.some(a => a.name.toLowerCase() === accountName.trim().toLowerCase())) {
+                alert(`Account name "${accountName}" already exists!`); // Use standard alert here as a simple error notice
+                return;
+            }
+
+            try {
+                await setDoc(doc(accountsRef, accountId), {
+                    name: accountName.trim(),
+                    createdAt: serverTimestamp(),
+                });
+                currentAccountId = accountId; // Switch to the new account
+                newAccountModal.classList.add('hidden');
+                newAccountModal.classList.remove('modal-visible');
+            } catch (error) {
+                console.error("Error adding account:", error);
+            }
+        }
+
+
         async function addTrade(tradeData) {
             const tradesRef = getTradesCollectionRef();
             if (!tradesRef) return;
@@ -644,11 +701,12 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
 
             try {
                 await addDoc(tradesRef, {
+                    accountId: tradeData.accountId,
                     date: tradeData.date,
                     symbol: tradeData.symbol.toUpperCase(),
-                    pnl: netPnL,        // Store the NET P&L (legacy field, kept for consistency)
-                    grossPnL: grossPnL, // Store Gross P&L for audit/edit
-                    fee: fee,           // Store Fee for audit/edit
+                    pnl: netPnL,       
+                    grossPnL: grossPnL, 
+                    fee: fee,          
                     size: parseFloat(tradeData.size),
                     notes: tradeData.notes || '',
                     createdAt: serverTimestamp(),
@@ -659,11 +717,6 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             }
         }
 
-        /**
-         * Updates an existing trade document in Firestore.
-         * @param {string} id - Document ID of the trade to update.
-         * @param {Object} tradeData - The trade data object.
-         */
         async function updateTrade(id, tradeData) {
             const tradesRef = getTradesCollectionRef();
             if (!tradesRef) return;
@@ -675,6 +728,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             try {
                 const tradeDocRef = doc(tradesRef, id);
                 await updateDoc(tradeDocRef, {
+                    accountId: tradeData.accountId,
                     date: tradeData.date,
                     symbol: tradeData.symbol.toUpperCase(),
                     pnl: netPnL,
@@ -689,10 +743,6 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             }
         }
 
-        /**
-         * Deletes a trade document from Firestore.
-         * @param {string} id - Document ID of the trade to delete.
-         */
         async function deleteTrade(id) {
             const tradesRef = getTradesCollectionRef();
             if (!tradesRef) return;
@@ -705,12 +755,8 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             }
         }
         
-        /**
-         * Updates the account equity balance.
-         * @param {number} balance - The new equity balance.
-         */
         async function updateEquity(balance) {
-            const equityRef = getEquityDocRef();
+            const equityRef = getEquityDocRef(currentAccountId);
             if (!equityRef) return;
 
             try {
@@ -727,9 +773,6 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
 
         // --- BULK IMPORT LOGIC ---
 
-        /**
-         * Parses and saves bulk CSV data (YYYY-MM-DD,SYMBOL,Gross PnL,Size,Fee).
-         */
         async function parseAndSaveBulkTrades(event) {
             event.preventDefault();
             const rawData = importDataTextarea.value.trim();
@@ -744,37 +787,43 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             let errorCount = 0;
 
             lines.forEach(line => {
-                // Use a regex to split based on commas, but tolerate surrounding spaces
+                // Now expecting 6 parts: YYYY-MM-DD,ACCOUNT_ID,SYMBOL,Gross PnL,Size,Fee
                 const parts = line.split(',').map(p => p.trim());
                 
-                if (parts.length < 5) {
+                if (parts.length < 6) {
                     errorCount++;
-                    console.warn(`Skipping line due to insufficient columns: ${line}`);
+                    console.warn(`Skipping line due to insufficient columns (expected 6): ${line}`);
                     return;
                 }
                 
-                // Extract and trim parts aggressively
                 const date = parts[0].trim();
-                const symbol = parts[1].trim();
-                const grossPnLStr = parts[2].trim();
-                const sizeStr = parts[3].trim();
-                const feeStr = parts[4].trim();
+                const accountId = parts[1].trim(); // New: Account ID
+                const symbol = parts[2].trim();
+                const grossPnLStr = parts[3].trim();
+                const sizeStr = parts[4].trim();
+                const feeStr = parts[5].trim();
                 
-                // Clean and parse values
                 const grossPnL = parseFloat(grossPnLStr);
                 const size = parseFloat(sizeStr);
                 const fee = parseFloat(feeStr);
                 
-                // Basic validation
-                if (!date || !symbol || isNaN(grossPnL) || isNaN(size) || isNaN(fee)) {
+                if (!date || !accountId || !symbol || isNaN(grossPnL) || isNaN(size) || isNaN(fee)) {
                     errorCount++;
                     console.warn(`Skipping line due to invalid data format: ${line}`);
                     return;
                 }
+                
+                if (!accounts.some(a => a.id === accountId)) {
+                    errorCount++;
+                    console.warn(`Skipping line: Account ID "${accountId}" not found. Add account first.`);
+                    return;
+                }
+
 
                 const netPnL = grossPnL - fee;
 
                 tradesToBatch.push({
+                    accountId,
                     date,
                     symbol: symbol.toUpperCase(),
                     grossPnL,
@@ -792,7 +841,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 
                 const batch = writeBatch(db);
                 tradesToBatch.forEach(trade => {
-                    const newDocRef = doc(tradesRef); // Create a new doc reference with auto-generated ID
+                    const newDocRef = doc(tradesRef); 
                     batch.set(newDocRef, trade);
                 });
 
@@ -802,13 +851,11 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     importStatus.textContent = errorCount > 0 ? `${successMessage} (${errorCount} lines skipped due to error).` : successMessage;
                     importStatus.classList.remove('text-red-400');
                     importStatus.classList.add('green-text');
-                    importDataTextarea.value = ''; // Clear text area on success
+                    importDataTextarea.value = ''; 
                     
-                    // Close modal after a brief moment
                     setTimeout(() => {
                         importModal.classList.add('hidden');
-                        importModal.classList.remove('modal-visible'); // Ensure absolute hidden state
-                        // Reset status message after closing
+                        importModal.classList.remove('modal-visible'); 
                         importStatus.classList.remove('green-text');
                         importStatus.textContent = '';
                     }, 1500);
@@ -835,43 +882,64 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
 
             // Handles filtering when the symbol selection changes.
             symbolFilter.addEventListener('change', () => {
-                // Re-sort the trades to be table-sorted (most recent first)
                 const tableSortedTrades = [...trades].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
                 renderTradeLog(tableSortedTrades);
             });
             
+            // Handles account selection change
+            accountSelector.addEventListener('change', (e) => {
+                currentAccountId = e.target.value;
+                startTradeListener(); 
+                startEquityListener(); 
+                updateSymbolFilter(trades); // Clear out symbol filter options for new account
+            });
+
             // --- MODAL CONTROLS ---
 
             addTradeBtn.addEventListener('click', () => {
                 currentTradeToEdit = null;
                 document.getElementById('modal-title').textContent = 'Add New Trade';
                 tradeForm.reset();
-                // Initialize input values to avoid 'null' issues
+                
+                // *** CRITICAL FIX: Ensure ALL relevant inputs are enabled and initialized ***
+                document.querySelectorAll('#trade-form input, #trade-form textarea').forEach(input => input.removeAttribute('disabled'));
                 tradeGrossPnLInput.value = '';
                 tradeFeeInput.value = '0.00';
                 tradeNotesInput.value = '';
+                tradeAccountIdInput.value = currentAccountId; // Auto-fill current account ID
+                
                 tradeModal.classList.remove('hidden');
-                tradeModal.classList.add('modal-visible'); // Force display
+                tradeModal.classList.add('modal-visible'); 
             });
             
             importDataBtn.addEventListener('click', () => {
-                importStatus.textContent = ''; // Clear any previous status
-                importDataTextarea.value = ''; // Ensure textarea is empty
+                importStatus.textContent = ''; 
+                importDataTextarea.value = ''; 
                 importModal.classList.remove('hidden');
-                importModal.classList.add('modal-visible'); // Force display
+                importModal.classList.add('modal-visible'); 
+                
+                // Update bulk import placeholder to reflect current account ID
+                const placeholderText = `Example: \n${new Date().getFullYear()}-10-16,${currentAccountId},NVDA,150.25,10,1.00`;
+                importDataTextarea.setAttribute('placeholder', placeholderText);
             });
             
-            // Listener for the newly rendered Update Equity button
+            addAccountBtn.addEventListener('click', () => {
+                newAccountForm.reset();
+                newAccountModal.classList.remove('hidden');
+                newAccountModal.classList.add('modal-visible');
+            });
+            
             document.addEventListener('click', (e) => {
                 if (e.target && e.target.id === 'update-equity-btn') {
                     currentEquityInput.value = currentEquity.toFixed(2);
+                    equityModalAccountName.textContent = currentAccountId;
                     equityModal.classList.remove('hidden');
-                    equityModal.classList.add('modal-visible'); // Force display
+                    equityModal.classList.add('modal-visible'); 
                 }
             });
 
 
-            [cancelTradeBtn, cancelImportBtn, cancelEquityBtn].forEach(btn => {
+            [cancelTradeBtn, cancelImportBtn, cancelEquityBtn, cancelNewAccountBtn].forEach(btn => {
                 btn.addEventListener('click', () => {
                     tradeModal.classList.add('hidden');
                     tradeModal.classList.remove('modal-visible');
@@ -879,6 +947,8 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     importModal.classList.remove('modal-visible');
                     equityModal.classList.add('hidden');
                     equityModal.classList.remove('modal-visible');
+                    newAccountModal.classList.add('hidden');
+                    newAccountModal.classList.remove('modal-visible');
                     
                     if (confirmationTimeout) {
                         clearTimeout(confirmationTimeout);
@@ -893,6 +963,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 e.preventDefault();
                 
                 const tradeData = {
+                    accountId: tradeAccountIdInput.value.trim(),
                     date: document.getElementById('trade-date').value,
                     symbol: document.getElementById('trade-symbol').value,
                     grossPnL: parseFloat(tradeGrossPnLInput.value),
@@ -900,6 +971,12 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     size: parseFloat(document.getElementById('trade-size').value),
                     notes: tradeNotesInput.value,
                 };
+                
+                // Check if account exists
+                if (!accounts.some(a => a.id === tradeData.accountId)) {
+                    alert(`Account ID "${tradeData.accountId}" does not exist. Please add it first.`);
+                    return;
+                }
 
                 if (currentTradeToEdit) {
                     await updateTrade(currentTradeToEdit.id, tradeData);
@@ -922,6 +999,15 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     equityModal.classList.remove('modal-visible');
                 }
             });
+            
+            newAccountForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const accountName = document.getElementById('new-account-name').value;
+                if (accountName) {
+                    await addAccount(accountName);
+                    // Account listener will handle modal close and selector update
+                }
+            });
 
 
             // --- DYNAMIC BUTTON LISTENERS (EDIT/DELETE) ---
@@ -938,6 +1024,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                         
                         document.getElementById('trade-date').value = trade.date || '';
                         document.getElementById('trade-symbol').value = trade.symbol || '';
+                        tradeAccountIdInput.value = trade.accountId || ''; // Load account ID
                         tradeGrossPnLInput.value = trade.grossPnL !== undefined ? trade.grossPnL.toFixed(2) : '';
                         tradeFeeInput.value = trade.fee !== undefined ? trade.fee.toFixed(2) : '0.00';
                         document.getElementById('trade-size').value = trade.size !== undefined ? trade.size : '';
@@ -991,21 +1078,40 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
 
         async function checkAndInsertSampleData() {
             const tradesRef = getTradesCollectionRef();
-            if (!tradesRef) return;
+            const accountsRef = getAccountsCollectionRef();
+            if (!tradesRef || !accountsRef) return;
             
             try {
-                // Check if any trades exist for this user
-                const snapshot = await getDocs(tradesRef);
+                const [tradesSnapshot, accountsSnapshot] = await Promise.all([
+                    getDocs(tradesRef),
+                    getDocs(accountsRef)
+                ]);
                 
-                if (snapshot.empty) {
-                    console.log("No trades found. Inserting sample data.");
+                if (accountsSnapshot.empty) {
+                    console.log("No accounts found. Inserting sample accounts and data.");
                     const batch = writeBatch(db);
                     
+                    // Insert sample accounts
+                    sampleAccounts.forEach(account => {
+                        batch.set(doc(accountsRef, account.id), {
+                            name: account.name,
+                            createdAt: serverTimestamp()
+                        });
+                        // Insert sample equity for each account
+                        const equityRef = getEquityDocRef(account.id);
+                         batch.set(equityRef, {
+                            balance: 10000.00,
+                            updatedAt: serverTimestamp()
+                        });
+                    });
+
+                    // Insert sample trades
                     sampleTrades.forEach(trade => {
                         const newDocRef = doc(tradesRef); 
                         const netPnL = trade.grossPnL - trade.fee;
                         
                         batch.set(newDocRef, {
+                            accountId: trade.accountId,
                             date: trade.date,
                             symbol: trade.symbol.toUpperCase(),
                             grossPnL: trade.grossPnL,
@@ -1017,17 +1123,10 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                         });
                     });
                     
-                    // Insert sample equity balance
-                    const equityRef = getEquityDocRef();
-                    batch.set(equityRef, {
-                        balance: 10000.00,
-                        updatedAt: serverTimestamp()
-                    });
-
                     await batch.commit();
                     console.log("Sample data inserted successfully.");
                 } else {
-                    console.log(`Found ${snapshot.size} existing trades. Skipping sample data insertion.`);
+                    console.log(`Found ${accountsSnapshot.size} existing accounts. Skipping sample data insertion.`);
                 }
             } catch (error) {
                 console.error("Error inserting sample data:", error);
@@ -1037,3 +1136,5 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
     </script>
 </body>
 </html>
+
+
