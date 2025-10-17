@@ -423,7 +423,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     tempDiv.innerHTML = equityCardHTML.trim();
                     const newCard = tempDiv.firstChild;
                     
-                    // *** CRITICAL FIX: Insert the new card before the KPI Parent Card, which IS a direct child of mainContentGrid. ***
+                    // CRITICAL FIX: Insert the new card before the KPI Parent Card
                     mainContentGrid.insertBefore(newCard, kpiParentCard); 
 
                 } else {
@@ -683,6 +683,8 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     createdAt: serverTimestamp(),
                 });
                 currentAccountId = accountId; // Switch to the new account
+                
+                // Auto-hide the modal
                 newAccountModal.classList.add('hidden');
                 newAccountModal.classList.remove('modal-visible');
             } catch (error) {
@@ -787,8 +789,9 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             let errorCount = 0;
 
             lines.forEach(line => {
-                // Now expecting 6 parts: YYYY-MM-DD,ACCOUNT_ID,SYMBOL,Gross PnL,Size,Fee
-                const parts = line.split(',').map(p => p.trim());
+                // Regex to split by comma, ignoring potential spaces around it.
+                // This makes the parser much more tolerant of formatting inconsistencies.
+                const parts = line.split(/,\s*/).map(p => p.trim());
                 
                 if (parts.length < 6) {
                     errorCount++;
@@ -796,12 +799,12 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     return;
                 }
                 
-                const date = parts[0].trim();
-                const accountId = parts[1].trim(); // New: Account ID
-                const symbol = parts[2].trim();
-                const grossPnLStr = parts[3].trim();
-                const sizeStr = parts[4].trim();
-                const feeStr = parts[5].trim();
+                const date = parts[0];
+                const accountId = parts[1]; // New: Account ID
+                const symbol = parts[2];
+                const grossPnLStr = parts[3];
+                const sizeStr = parts[4];
+                const feeStr = parts[5];
                 
                 const grossPnL = parseFloat(grossPnLStr);
                 const size = parseFloat(sizeStr);
@@ -895,14 +898,22 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             });
 
             // --- MODAL CONTROLS ---
+            
+            // Function to reset and re-enable inputs for all modal forms
+            const resetAndEnableInputs = (formId) => {
+                const form = document.getElementById(formId);
+                if (form) {
+                    form.reset();
+                    // CRITICAL FIX: Explicitly remove disabled attribute on ALL inputs/textareas
+                    form.querySelectorAll('input, textarea').forEach(input => input.removeAttribute('disabled'));
+                }
+            };
 
             addTradeBtn.addEventListener('click', () => {
+                resetAndEnableInputs('trade-form'); // Reset and enable fields
                 currentTradeToEdit = null;
                 document.getElementById('modal-title').textContent = 'Add New Trade';
-                tradeForm.reset();
                 
-                // *** CRITICAL FIX: Ensure ALL relevant inputs are enabled and initialized ***
-                document.querySelectorAll('#trade-form input, #trade-form textarea').forEach(input => input.removeAttribute('disabled'));
                 tradeGrossPnLInput.value = '';
                 tradeFeeInput.value = '0.00';
                 tradeNotesInput.value = '';
@@ -913,8 +924,9 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             });
             
             importDataBtn.addEventListener('click', () => {
+                resetAndEnableInputs('import-form'); // Reset form
                 importStatus.textContent = ''; 
-                importDataTextarea.value = ''; 
+                
                 importModal.classList.remove('hidden');
                 importModal.classList.add('modal-visible'); 
                 
@@ -924,13 +936,14 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             });
             
             addAccountBtn.addEventListener('click', () => {
-                newAccountForm.reset();
+                resetAndEnableInputs('new-account-form'); // Reset form
                 newAccountModal.classList.remove('hidden');
                 newAccountModal.classList.add('modal-visible');
             });
             
             document.addEventListener('click', (e) => {
                 if (e.target && e.target.id === 'update-equity-btn') {
+                    resetAndEnableInputs('equity-form'); // Reset form
                     currentEquityInput.value = currentEquity.toFixed(2);
                     equityModalAccountName.textContent = currentAccountId;
                     equityModal.classList.remove('hidden');
@@ -1021,6 +1034,9 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     if (trade) {
                         currentTradeToEdit = trade;
                         document.getElementById('modal-title').textContent = `Edit Trade: ${trade.symbol}`;
+                        
+                        // Fix for edit mode locking: Re-enable inputs before setting values
+                        resetAndEnableInputs('trade-form');
                         
                         document.getElementById('trade-date').value = trade.date || '';
                         document.getElementById('trade-symbol').value = trade.symbol || '';
@@ -1136,5 +1152,3 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
     </script>
 </body>
 </html>
-
-
