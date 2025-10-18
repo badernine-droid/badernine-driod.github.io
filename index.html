@@ -753,9 +753,12 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             };
             
             // NEW: Use event delegation on the document body to handle clicks on dynamically loaded/problematic buttons
+            // This is the most stable method for handling button clicks.
             document.body.addEventListener('click', (e) => {
-                // ADD NEW TRADE BUTTON
-                if (e.target && e.target.id === 'add-trade-btn') {
+                
+                // 1. ADD NEW TRADE BUTTON
+                const addTradeBtn = e.target.closest('#add-trade-btn');
+                if (addTradeBtn) {
                     resetAndEnableInputs('trade-form'); 
                     currentTradeToEdit = null;
                     document.getElementById('modal-title').textContent = 'Add New Trade';
@@ -763,22 +766,26 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     tradeFeeInput.value = '0.00';
                     tradeNotesInput.value = '';
                     tradeModal.classList.remove('hidden');
+                    return;
                 }
                 
-                // IMPORT BULK DATA BUTTON
-                else if (e.target && e.target.id === 'import-data-btn') {
+                // 2. IMPORT BULK DATA BUTTON
+                const importDataBtn = e.target.closest('#import-data-btn');
+                if (importDataBtn) {
                     resetAndEnableInputs('import-form'); 
                     importStatus.textContent = ''; 
                     importModal.classList.remove('hidden');
                     const placeholderText = `Example: \n${new Date().getFullYear()}-10-16,NVDA,150.25,10,1.00`;
                     importDataTextarea.setAttribute('placeholder', placeholderText);
+                    return;
                 }
                 
-                // UPDATE EQUITY BUTTON (dynamically loaded)
-                else if (e.target && e.target.id === 'update-equity-btn') {
+                // 3. UPDATE EQUITY BUTTON (dynamically loaded)
+                if (e.target && e.target.id === 'update-equity-btn') {
                     resetAndEnableInputs('equity-form'); 
                     currentEquityInput.value = currentEquity.toFixed(2);
                     equityModal.classList.remove('hidden');
+                    return;
                 }
             });
 
@@ -955,4 +962,3 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
     </script>
 </body>
 </html>
-
