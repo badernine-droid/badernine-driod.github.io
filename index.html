@@ -21,8 +21,6 @@
         ::-webkit-scrollbar-track { background: #161b22; }
         ::-webkit-scrollbar-thumb { background: #484f58; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #5c6370; }
-        /* Modal class for guaranteed visibility */
-        .modal-visible { display: flex !important; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -231,7 +229,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     <button type="button" id="cancel-new-account-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
                         Cancel
                     </button>
-                    <!-- CRITICAL FIX: Changed type to "button" to prevent implicit form submission/page reload -->
+                    <!-- CRITICAL FIX: The button MUST be type="submit" for the form listener to reliably fire. -->
                     <button type="submit" id="save-new-account-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
                         Add Account
                     </button>
@@ -693,7 +691,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 
                 // Auto-hide the modal
                 newAccountModal.classList.add('hidden');
-                newAccountModal.classList.remove('modal-visible');
+                // newAccountModal.classList.remove('modal-visible'); // Removed as per stability fix
             } catch (error) {
                 console.error("Error adding account:", error);
             }
@@ -865,7 +863,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     
                     setTimeout(() => {
                         importModal.classList.add('hidden');
-                        importModal.classList.remove('modal-visible'); 
+                        // importModal.classList.remove('modal-visible'); // Removed as per stability fix
                         importStatus.classList.remove('green-text');
                         importStatus.textContent = '';
                     }, 1500);
@@ -925,7 +923,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 tradeAccountIdInput.value = currentAccountId; // Auto-fill current account ID
                 
                 tradeModal.classList.remove('hidden');
-                tradeModal.classList.add('modal-visible'); 
+                // tradeModal.classList.add('modal-visible'); // Removed as per stability fix
             });
             
             importDataBtn.addEventListener('click', () => {
@@ -933,7 +931,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 importStatus.textContent = ''; 
                 
                 importModal.classList.remove('hidden');
-                importModal.classList.add('modal-visible'); 
+                // importModal.classList.add('modal-visible'); // Removed as per stability fix
                 
                 // Update bulk import placeholder to reflect current account ID
                 const placeholderText = `Example: \n${new Date().getFullYear()}-10-16,${currentAccountId},NVDA,150.25,10,1.00`;
@@ -943,7 +941,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             addAccountBtn.addEventListener('click', () => {
                 resetAndEnableInputs('new-account-form'); // Reset form
                 newAccountModal.classList.remove('hidden');
-                newAccountModal.classList.add('modal-visible');
+                // newAccountModal.classList.add('modal-visible'); // Removed as per stability fix
             });
             
             document.addEventListener('click', (e) => {
@@ -952,7 +950,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     currentEquityInput.value = currentEquity.toFixed(2);
                     equityModalAccountName.textContent = currentAccountId;
                     equityModal.classList.remove('hidden');
-                    equityModal.classList.add('modal-visible'); 
+                    // equityModal.classList.add('modal-visible'); // Removed as per stability fix
                 }
             });
 
@@ -960,13 +958,13 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             [cancelTradeBtn, cancelImportBtn, cancelEquityBtn, cancelNewAccountBtn].forEach(btn => {
                 btn.addEventListener('click', () => {
                     tradeModal.classList.add('hidden');
-                    tradeModal.classList.remove('modal-visible');
+                    // tradeModal.classList.remove('modal-visible'); // Removed as per stability fix
                     importModal.classList.add('hidden');
-                    importModal.classList.remove('modal-visible');
+                    // importModal.classList.remove('modal-visible'); // Removed as per stability fix
                     equityModal.classList.add('hidden');
-                    equityModal.classList.remove('modal-visible');
+                    // equityModal.classList.remove('modal-visible'); // Removed as per stability fix
                     newAccountModal.classList.add('hidden');
-                    newAccountModal.classList.remove('modal-visible');
+                    // newAccountModal.classList.remove('modal-visible'); // Removed as per stability fix
                     
                     if (confirmationTimeout) {
                         clearTimeout(confirmationTimeout);
@@ -1004,7 +1002,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 }
 
                 tradeModal.classList.add('hidden');
-                tradeModal.classList.remove('modal-visible');
+                // tradeModal.classList.remove('modal-visible'); // Removed as per stability fix
             });
 
             importForm.addEventListener('submit', parseAndSaveBulkTrades);
@@ -1016,7 +1014,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 if (!isNaN(balance)) {
                     await updateEquity(balance);
                     equityModal.classList.add('hidden');
-                    equityModal.classList.remove('modal-visible');
+                    // equityModal.classList.remove('modal-visible'); // Removed as per stability fix
                 }
             });
             
@@ -1059,7 +1057,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                         tradeNotesInput.value = trade.notes || '';
 
                         tradeModal.classList.remove('hidden');
-                        tradeModal.classList.add('modal-visible');
+                        // tradeModal.classList.add('modal-visible'); // Removed as per stability fix
                     }
                 } else if (e.target.classList.contains('delete-btn')) {
                     // Double-click confirmation logic
