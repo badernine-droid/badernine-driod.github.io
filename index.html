@@ -603,6 +603,29 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             });
         }
         
+        /**
+         * Starts a real-time listener for the current account's equity balance.
+         */
+        function startEquityListener() {
+            const equityRef = getEquityDocRef();
+            if (!equityRef || !currentAccountId) return;
+
+            // We listen to the specific equity document for the current account
+            onSnapshot(equityRef, (doc) => {
+                const data = doc.data();
+                if (data && data.balance !== undefined) {
+                    currentEquity = parseFloat(data.balance);
+                } else {
+                    currentEquity = 0.00;
+                }
+                // Re-render KPIs to update the Equity Card display
+                renderKPIs(trades);
+            }, (error) => {
+                console.error("Error listening to equity data:", error);
+            });
+        }
+
+
         function updateAccountSelector() {
             const prevAccountId = currentAccountId;
             const accountIdToSelect = accounts.some(a => a.id === prevAccountId) ? prevAccountId : accounts[0]?.id || '';
