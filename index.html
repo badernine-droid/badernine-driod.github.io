@@ -231,7 +231,8 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     <button type="button" id="cancel-new-account-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
                         Cancel
                     </button>
-                    <button type="submit" id="save-new-account-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                    <!-- CRITICAL FIX: Changed type to "button" to prevent implicit form submission/page reload -->
+                    <button type="button" id="save-new-account-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
                         Add Account
                     </button>
                 </div>
@@ -295,6 +296,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
         const tradeFeeInput = document.getElementById('trade-fee'); 
         const currentEquityInput = document.getElementById('current-equity');
         const equityModalAccountName = document.getElementById('equity-modal-account-name');
+        const saveNewAccountBtn = document.getElementById('save-new-account-btn'); // Get the new button reference
         
         // NEW ELEMENT ID FOR FIX
         const kpiParentCard = document.getElementById('kpi-parent-card');
@@ -884,9 +886,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
 
         // --- EVENT LISTENERS ---
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeFirebase();
-
+        function attachEventListeners() {
             // Handles filtering when the symbol selection changes.
             symbolFilter.addEventListener('change', () => {
                 const tableSortedTrades = [...trades].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -1019,19 +1019,18 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 }
             });
             
-            // FIX: Ensure this event listener is inside DOMContentLoaded
-            newAccountForm.addEventListener('submit', async (e) => {
+            // CRITICAL FIX: Event attached directly to the non-submitting button
+            saveNewAccountBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 const accountName = document.getElementById('new-account-name').value.trim();
                 
-                // CRITICAL FIX: Ensure accountName is not empty before proceeding
                 if (accountName === '') {
                     alert("Account name cannot be empty.");
                     return;
                 }
                 
+                // The addAccount function already handles Firebase commit and modal closing upon success.
                 await addAccount(accountName);
-                // Account listener will handle modal close and selector update
             });
 
 
@@ -1100,7 +1099,13 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     confirmationTimeout = null;
                 }
             });
+        } // End of attachEventListeners
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeFirebase();
+            attachEventListeners(); // Attach all event listeners after Firebase init attempt
         });
+
 
         // --- SAMPLE DATA INSERTION ---
 
