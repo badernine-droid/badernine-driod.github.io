@@ -1022,11 +1022,16 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             // FIX: Ensure this event listener is inside DOMContentLoaded
             newAccountForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const accountName = document.getElementById('new-account-name').value;
-                if (accountName) {
-                    await addAccount(accountName);
-                    // Account listener will handle modal close and selector update
+                const accountName = document.getElementById('new-account-name').value.trim();
+                
+                // CRITICAL FIX: Ensure accountName is not empty before proceeding
+                if (accountName === '') {
+                    alert("Account name cannot be empty.");
+                    return;
                 }
+                
+                await addAccount(accountName);
+                // Account listener will handle modal close and selector update
             });
 
 
