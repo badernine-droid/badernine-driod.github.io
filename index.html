@@ -229,8 +229,6 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
         const tradeLogBody = document.getElementById('trade-log-body');
         const kpiContainer = document.getElementById('kpi-container');
         const symbolFilter = document.getElementById('symbol-filter');
-        const addTradeBtn = document.getElementById('add-trade-btn');
-        const importDataBtn = document.getElementById('import-data-btn');
         const tradeModal = document.getElementById('trade-modal');
         const importModal = document.getElementById('import-modal');
         const equityModal = document.getElementById('equity-modal');
@@ -753,33 +751,32 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     form.querySelectorAll('input, textarea').forEach(input => input.removeAttribute('disabled'));
                 }
             };
-
-            addTradeBtn.addEventListener('click', () => {
-                resetAndEnableInputs('trade-form'); // Reset and enable fields
-                currentTradeToEdit = null;
-                document.getElementById('modal-title').textContent = 'Add New Trade';
-                
-                tradeGrossPnLInput.value = '';
-                tradeFeeInput.value = '0.00';
-                tradeNotesInput.value = '';
-                
-                tradeModal.classList.remove('hidden');
-            });
             
-            importDataBtn.addEventListener('click', () => {
-                resetAndEnableInputs('import-form'); // Reset form
-                importStatus.textContent = ''; 
+            // NEW: Use event delegation on the document body to handle clicks on dynamically loaded/problematic buttons
+            document.body.addEventListener('click', (e) => {
+                // ADD NEW TRADE BUTTON
+                if (e.target && e.target.id === 'add-trade-btn') {
+                    resetAndEnableInputs('trade-form'); 
+                    currentTradeToEdit = null;
+                    document.getElementById('modal-title').textContent = 'Add New Trade';
+                    tradeGrossPnLInput.value = '';
+                    tradeFeeInput.value = '0.00';
+                    tradeNotesInput.value = '';
+                    tradeModal.classList.remove('hidden');
+                }
                 
-                importModal.classList.remove('hidden');
+                // IMPORT BULK DATA BUTTON
+                else if (e.target && e.target.id === 'import-data-btn') {
+                    resetAndEnableInputs('import-form'); 
+                    importStatus.textContent = ''; 
+                    importModal.classList.remove('hidden');
+                    const placeholderText = `Example: \n${new Date().getFullYear()}-10-16,NVDA,150.25,10,1.00`;
+                    importDataTextarea.setAttribute('placeholder', placeholderText);
+                }
                 
-                // Update bulk import placeholder to reflect current account ID
-                const placeholderText = `Example: \n${new Date().getFullYear()}-10-16,NVDA,150.25,10,1.00`;
-                importDataTextarea.setAttribute('placeholder', placeholderText);
-            });
-            
-            document.addEventListener('click', (e) => {
-                if (e.target && e.target.id === 'update-equity-btn') {
-                    resetAndEnableInputs('equity-form'); // Reset form
+                // UPDATE EQUITY BUTTON (dynamically loaded)
+                else if (e.target && e.target.id === 'update-equity-btn') {
+                    resetAndEnableInputs('equity-form'); 
                     currentEquityInput.value = currentEquity.toFixed(2);
                     equityModal.classList.remove('hidden');
                 }
@@ -799,7 +796,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             });
 
 
-            // --- FORM SUBMISSIONS ---
+            // --- FORM SUBMISSIONS (STABLE) ---
 
             tradeForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -813,8 +810,6 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     size: parseFloat(document.getElementById('trade-size').value),
                     notes: tradeNotesInput.value,
                 };
-                
-                // No account check needed in single-account mode
 
                 if (currentTradeToEdit) {
                     await updateTrade(currentTradeToEdit.id, tradeData);
@@ -960,3 +955,4 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
     </script>
 </body>
 </html>
+
