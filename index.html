@@ -232,7 +232,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                         Cancel
                     </button>
                     <!-- CRITICAL FIX: Changed type to "button" to prevent implicit form submission/page reload -->
-                    <button type="button" id="save-new-account-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                    <button type="submit" id="save-new-account-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
                         Add Account
                     </button>
                 </div>
@@ -675,7 +675,8 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
             const accountsRef = getAccountsCollectionRef();
             if (!accountsRef) return;
             
-            const accountId = accountName.trim().replace(/\s+/g, '_').toLowerCase();
+            // Create a safe, unique ID for Firestore document (lowercase, no spaces/special chars)
+            const accountId = accountName.trim().replace(/\s+/g, '_').replace(/[^\w-]/g, '').toLowerCase();
             
             // Check if account already exists (case-insensitive on name)
             if (accounts.some(a => a.name.toLowerCase() === accountName.trim().toLowerCase())) {
@@ -1019,9 +1020,9 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                 }
             });
             
-            // CRITICAL FIX: Event attached directly to the non-submitting button
-            saveNewAccountBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
+            // CRITICAL FIX: The event handler for form submit ensures e.preventDefault is the FIRST thing run.
+            newAccountForm.addEventListener('submit', async (e) => {
+                e.preventDefault(); // STOP the form from doing anything else first!
                 const accountName = document.getElementById('new-account-name').value.trim();
                 
                 if (accountName === '') {
@@ -1029,7 +1030,7 @@ class="w-full p-3 rounded-lg bg-[#0d1117] border border-[#30363d] text-white res
                     return;
                 }
                 
-                // The addAccount function already handles Firebase commit and modal closing upon success.
+                // The addAccount function handles Firebase commit and modal closing upon success.
                 await addAccount(accountName);
             });
 
